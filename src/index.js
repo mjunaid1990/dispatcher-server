@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const userRoutes = require('./routes/users');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -12,6 +13,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.json({ message: 'Dispatcher Server API' });
 });
+
+app.use('/api/users', userRoutes);
 
 app.get('/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
