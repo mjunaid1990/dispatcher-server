@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/users');
+const seedRoutes = require('./routes/seed');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,6 +16,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/users', userRoutes);
+app.use('/api/seed', seedRoutes);
 
 app.get('/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
