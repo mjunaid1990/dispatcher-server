@@ -5,8 +5,21 @@ const { User } = require('../models');
 
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find().select('-passwordHash');
+    const filter = {};
+    if (req.query.role) filter.role = req.query.role;
+    if (req.query.email) filter.email = req.query.email.toLowerCase();
+    const users = await User.find(filter).select('-passwordHash').sort({ createdAt: -1 });
     res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/email/:email', async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email.toLowerCase() }).select('-passwordHash');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
