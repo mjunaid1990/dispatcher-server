@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node src/seed.js"
+    "seed": "node src/seed.js",
+    "migrate": "node src/migrations/001_initial_migration.js",
+    "migrate:rollback": "node src/migrations/001_initial_migration.js down"
   },
   "keywords": [],
   "author": "",

@@ -15,6 +15,8 @@ const Rating = require('./Rating');
 const Notification = require('./Notification');
 const SupportTicket = require('./SupportTicket');
 const Zone = require('./Zone');
+const Setting = require('./Setting');
+const Role = require('./Role');
 
 module.exports = {
   User,
@@ -34,4 +36,6 @@ module.exports = {
   Notification,
   SupportTicket,
   Zone,
+  Setting,
+  Role,
 };

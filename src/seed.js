@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const {
   User, Driver, Customer, Address, Order, Business, Zone,
   DeliveryAssignment, TrackingEvent, Earning, Rating, Notification,
+  Setting, Role,
 } = require('./models');
 
 async function seed() {
@@ -16,6 +17,7 @@ async function seed() {
     Zone.deleteMany(), DeliveryAssignment.deleteMany(),
     TrackingEvent.deleteMany(), Earning.deleteMany(),
     Rating.deleteMany(), Notification.deleteMany(),
+    Setting.deleteMany(), Role.deleteMany(),
   ]);
 
   const hash = await bcrypt.hash('password123', 12);
@@ -159,6 +161,67 @@ async function seed() {
     { userId: customerUser._id, type: 'order_delivered', title: 'Delivered!', body: 'Your order ORD-1001 has been delivered' },
   ]);
   console.log('Created 2 notifications');
+
+  // ── Default Roles ──
+  await Role.create([
+    {
+      name: 'Admin',
+      slug: 'admin',
+      description: 'Full system access',
+      permissions: [
+        'users.create', 'users.read', 'users.update', 'users.delete',
+        'drivers.create', 'drivers.read', 'drivers.update', 'drivers.delete',
+        'customers.create', 'customers.read', 'customers.update', 'customers.delete',
+        'orders.create', 'orders.read', 'orders.update', 'orders.delete',
+        'settings.manage', 'roles.manage', 'analytics.view',
+      ],
+      isSystem: true,
+      isActive: true,
+    },
+    {
+      name: 'Dispatcher',
+      slug: 'dispatcher',
+      description: 'Manage orders and drivers',
+      permissions: [
+        'drivers.read', 'drivers.update',
+        'customers.create', 'customers.read', 'customers.update',
+        'orders.create', 'orders.read', 'orders.update', 'orders.delete',
+        'analytics.view',
+      ],
+      isSystem: true,
+      isActive: true,
+    },
+    {
+      name: 'Driver',
+      slug: 'driver',
+      description: 'Driver mobile app access',
+      permissions: [
+        'orders.read', 'orders.update',
+        'profile.update',
+      ],
+      isSystem: true,
+      isActive: true,
+    },
+    {
+      name: 'Customer',
+      slug: 'customer',
+      description: 'Customer mobile app access',
+      permissions: [
+        'orders.create', 'orders.read',
+        'profile.update',
+      ],
+      isSystem: true,
+      isActive: true,
+    },
+  ]);
+  console.log('Created 4 default roles');
+
+  // ── Default Settings ──
+  await Setting.create([
+    { key: 'general_APP_NAME', value: 'Dispatcher Dashboard', category: 'general', description: 'Application Name' },
+    { key: 'general_TIMEZONE', value: 'UTC', category: 'general', description: 'Default Timezone' },
+  ]);
+  console.log('Created default settings');
 
   console.log('\nSeed complete!');
   console.log('Login emails: admin@dispatcher.com, ali@driver.com, sara@customer.com');
