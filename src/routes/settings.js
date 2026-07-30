@@ -27,7 +27,7 @@ router.get('/category/:category', async (req, res) => {
 // Save settings (bulk update)
 router.post('/', async (req, res) => {
   try {
-    const { smtp, sms, push, general, role } = req.body;
+    const { smtp, sms, push, general } = req.body;
 
     const operations = [];
 
@@ -95,24 +95,6 @@ router.post('/', async (req, res) => {
               value, 
               category: 'general',
               description: `General ${key}`,
-              updatedAt: new Date()
-            },
-            upsert: true
-          }
-        });
-      });
-    }
-
-    // Process Role settings
-    if (role) {
-      Object.entries(role).forEach(([key, value]) => {
-        operations.push({
-          updateOne: {
-            filter: { key: `role_${key}` },
-            update: { 
-              value, 
-              category: 'role',
-              description: `Role ${key}`,
               updatedAt: new Date()
             },
             upsert: true

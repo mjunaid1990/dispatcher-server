@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const connectDB = require('../config/db');
 
 /**
- * Migration 001: Initial setup for Setting and Role collections
+ * Migration 001: Initial setup for Setting collection
  * This migration creates the new tables and alters existing ones if needed
  */
 
@@ -17,7 +17,7 @@ async function up() {
   const settingSchema = new mongoose.Schema({
     key: { type: String, required: true, unique: true },
     value: { type: mongoose.Schema.Types.Mixed, required: true },
-    category: { type: String, enum: ['smtp', 'sms', 'push', 'general', 'role'], default: 'general' },
+    category: { type: String, enum: ['smtp', 'sms', 'push', 'general'], default: 'general' },
     description: { type: String },
     updatedAt: { type: Date, default: Date.now },
   }, { timestamps: true });
@@ -30,89 +30,6 @@ async function up() {
   await Setting.createIndexes();
   console.log('✓ Setting collection created with indexes');
 
-  // Create Role collection with indexes
-  const roleSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    description: { type: String },
-    permissions: [{ type: String }],
-    isSystem: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: true },
-  }, { timestamps: true });
-
-  roleSchema.index({ name: 1 });
-  roleSchema.index({ slug: 1 });
-  roleSchema.index({ isActive: 1 });
-
-  const Role = mongoose.model('Role', roleSchema);
-  await Role.createIndexes();
-  console.log('✓ Role collection created with indexes');
-
-  // Seed default system roles
-  const defaultRoles = [
-    {
-      name: 'Admin',
-      slug: 'admin',
-      description: 'Full system access',
-      permissions: [
-        'users.create', 'users.read', 'users.update', 'users.delete',
-        'drivers.create', 'drivers.read', 'drivers.update', 'drivers.delete',
-        'customers.create', 'customers.read', 'customers.update', 'customers.delete',
-        'orders.create', 'orders.read', 'orders.update', 'orders.delete',
-        'settings.manage', 'roles.manage', 'analytics.view',
-      ],
-      isSystem: true,
-      isActive: true,
-    },
-    {
-      name: 'Dispatcher',
-      slug: 'dispatcher',
-      description: 'Manage orders and drivers',
-      permissions: [
-        'drivers.read', 'drivers.update',
-        'customers.create', 'customers.read', 'customers.update',
-        'orders.create', 'orders.read', 'orders.update', 'orders.delete',
-        'analytics.view',
-      ],
-      isSystem: true,
-      isActive: true,
-    },
-    {
-      name: 'Driver',
-      slug: 'driver',
-      description: 'Driver mobile app access',
-      permissions: [
-        'orders.read', 'orders.update',
-        'profile.update',
-      ],
-      isSystem: true,
-      isActive: true,
-    },
-    {
-      name: 'Customer',
-      slug: 'customer',
-      description: 'Customer mobile app access',
-      permissions: [
-        'orders.create', 'orders.read',
-        'profile.update',
-      ],
-      isSystem: true,
-      isActive: true,
-    },
-  ];
-
-  await Role.insertMany(defaultRoles);
-  console.log('✓ Default system roles seeded');
-
-  // Alter User collection - ensure role field has proper index
-  const userCollection = db.collection('users');
-  const userIndexes = await userCollection.indexes();
-  const hasRoleIndex = userIndexes.some(idx => idx.key && idx.key.role === 1);
-
-  if (!hasRoleIndex) {
-    await userCollection.createIndex({ role: 1 });
-    console.log('✓ Added role index to users collection');
-  }
 
   // Alter Order collection - add geo indexes if not present
   const orderCollection = db.collection('orders');
@@ -160,9 +77,6 @@ async function down() {
   // Drop collections
   await db.dropCollection('settings').catch(() => console.log('Settings collection not found or already dropped'));
   console.log('✓ Dropped settings collection');
-
-  await db.dropCollection('roles').catch(() => console.log('Roles collection not found or already dropped'));
-  console.log('✓ Dropped roles collection');
 
   // Remove migration record
   const migrationsCollection = db.collection('migrations');

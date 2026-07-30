@@ -20,7 +20,6 @@ const ticketRoutes = require('./routes/tickets');
 const zoneRoutes = require('./routes/zones');
 const seedRoutes = require('./routes/seed');
 const settingsRoutes = require('./routes/settings');
-const roleRoutes = require('./routes/roles');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,7 +47,6 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/zones', zoneRoutes);
 app.use('/api/seed', seedRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/roles', roleRoutes);
 
 app.get('/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
