@@ -56,6 +56,20 @@ const driverSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  settings: {
+    newOrderAlerts: {
+      type: Boolean,
+      default: true,
+    },
+    statusUpdates: {
+      type: Boolean,
+      default: true,
+    },
+    soundEnabled: {
+      type: Boolean,
+      default: true,
+    },
+  },
 }, {
   timestamps: true,
 });

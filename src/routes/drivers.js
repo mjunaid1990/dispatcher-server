@@ -6,7 +6,9 @@ const populates = [{ path: 'userId', select: '-passwordHash' }];
 
 router.get('/', async (req, res) => {
   try {
-    const items = await Driver.find().populate(populates).sort({ createdAt: -1 });
+    const filter = {};
+    if (req.query.userId) filter.userId = req.query.userId;
+    const items = await Driver.find(filter).populate(populates).sort({ createdAt: -1 });
     res.json(items);
   } catch (error) {
     res.status(500).json({ message: error.message });
