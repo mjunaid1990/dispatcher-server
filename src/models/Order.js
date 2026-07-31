@@ -20,6 +20,7 @@ const orderSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Address',
     },
+    line: String,
     contactName: String,
     contactPhone: String,
     location: {
@@ -36,6 +37,7 @@ const orderSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Address',
     },
+    line: String,
     contactName: String,
     contactPhone: String,
     location: {
@@ -93,6 +95,12 @@ const orderSchema = new mongoose.Schema({
   assignedAt: Date,
   deliveredAt: Date,
   failureReason: String,
+  proofOfDelivery: {
+    photoUrl: String,
+    signatureUrl: String,
+    notes: String,
+    capturedAt: Date,
+  },
   cancelledBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
