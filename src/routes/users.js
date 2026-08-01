@@ -1,16 +1,9 @@
 const express = require('express');
-const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { User } = require('../models');
-
-const TOKEN_SECRET = process.env.JWT_SECRET || 'dispatcher-dev-secret';
-
-const signToken = (payload) => {
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = crypto.createHmac('sha256', TOKEN_SECRET).update(body).digest('base64url');
-  return `${body}.${signature}`;
-};
+const { authenticate, JWT_SECRET } = require('../middleware/auth');
 
 router.post('/login', async (req, res) => {
   try {
@@ -29,13 +22,46 @@ router.post('/login', async (req, res) => {
     if (user.isActive === false) {
       return res.status(403).json({ message: 'Account is disabled' });
     }
-    const token = signToken({
-      id: user._id.toString(),
-      role: user.role,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
-    });
+
+    const token = jwt.sign(
+      {
+        id: user._id.toString(),
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
     const { passwordHash, ...safe } = user.toObject();
     res.json({ token, user: safe });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * Register or update FCM Push Token for user
+ */
+router.post('/fcm-token', authenticate, async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    if (!fcmToken) {
+      return res.status(400).json({ message: 'fcmToken is required' });
+    }
+
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.fcmTokens) user.fcmTokens = [];
+    if (!user.fcmTokens.includes(fcmToken)) {
+      user.fcmTokens.push(fcmToken);
+      await user.save();
+    }
+
+    res.json({ message: 'FCM Token registered successfully', fcmTokens: user.fcmTokens });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -85,7 +111,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   try {
     const updates = { ...req.body };
     delete updates.passwordHash;
@@ -97,7 +123,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });

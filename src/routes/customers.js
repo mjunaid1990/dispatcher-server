@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Customer } = require('../models');
+const { authenticate } = require('../middleware/auth');
 
 const populates = [
   { path: 'userId', select: '-passwordHash' },
@@ -27,7 +28,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     const item = await Customer.create(req.body);
     const populated = await Customer.findById(item._id).populate(populates);
@@ -37,7 +38,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   try {
     const item = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate(populates);
     if (!item) return res.status(404).json({ message: 'Customer not found' });
@@ -47,7 +48,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const item = await Customer.findByIdAndDelete(req.params.id);
     if (!item) return res.status(404).json({ message: 'Customer not found' });
